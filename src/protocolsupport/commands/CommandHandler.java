@@ -29,7 +29,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (!sender.hasPermission("protocolsupport.admin")) {
-			sender.sendMessage(ChatColor.RED + "You have no power here!");
+			sender.sendMessage("Unknown command. Type \"/help\" for help.");
 			return true;
 		}
 		else if(args.length == 1 || args.length == 2) {
