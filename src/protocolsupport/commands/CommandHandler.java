@@ -38,13 +38,14 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
 				return true;
 			}
 			else if (args[0].equalsIgnoreCase("list")) {
-				for (ProtocolVersion version : ProtocolVersion.values()) {
-					if (version.isSupported()) {
+				sender.sendMessage(ChatColor.GREEN + "ProtocolSupport Players:");
+				for (ProtocolVersion version : ProtocolVersion.getAllSupported()) {
 						String res = getPlayersStringForProtocol(version);
 						if(res.length() > 0 || (args.length == 2 && (args[1].equalsIgnoreCase("v") || args[1].equalsIgnoreCase("verbose"))))
 							sender.sendMessage(ChatColor.GOLD+"["+version.getName()+"]: "+ChatColor.GREEN+res);
-					}
 				}
+				if(args.length == 1 || !(args[1].equalsIgnoreCase("v") || args[1].equalsIgnoreCase("verbose")))
+					sender.sendMessage(ChatColor.GOLD +"List all compatible versions using " + ChatColor.GREEN +"/ps list verbose");
 				return true;
 			}
 			else if (args[0].equalsIgnoreCase("debug")) {
@@ -74,8 +75,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
 				return true;
 			}
 		}
-		sender.sendMessage("Usage: /protocolsupport [buildinfo|list|debug|leakdetector|connections]");
-		return true;
+		return false;
 	}
 
 	private String getPlayersStringForProtocol(ProtocolVersion version) {
