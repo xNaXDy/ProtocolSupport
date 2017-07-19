@@ -10,6 +10,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -27,11 +29,6 @@ import protocolsupport.protocol.utils.types.Position;
 import protocolsupport.zplatform.ServerPlatform;
 
 public class PlayerListener implements Listener {
-
-	private final ProtocolSupport plugin;
-	public PlayerListener(ProtocolSupport plugin) {
-		this.plugin = plugin;
-	}
 
 	@EventHandler
 	public void onShift(PlayerToggleSneakEvent event) {
@@ -92,6 +89,22 @@ public class PlayerListener implements Listener {
 		}
 	}
 
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onEntityDamage(EntityDamageEvent event) {
+		if ((event.getCause() == DamageCause.FIRE_TICK || event.getCause() == DamageCause.FIRE)) {
+			for (Player player : ServerPlatform.get().getMiscUtils().getNearbyPlayers(event.getEntity().getLocation(), 48, 128, 48)) {
+				Connection connection = ProtocolSupportAPI.getConnection(player);
+				if (
+					(connection != null) &&
+					(connection.getVersion().getProtocolType() == ProtocolType.PC) &&
+					connection.getVersion().isBefore(ProtocolVersion.MINECRAFT_1_12)
+				) {
+					connection.sendPacket(ServerPlatform.get().getPacketFactory().createEntityStatusPacket(event.getEntity(), 2));
+				}
+			}
+		}
+	}
+
 	@EventHandler(ignoreCancelled = true)
 	public void onVehicleEnter(VehicleEnterEvent event) {
 		if (!event.getVehicle().getPassengers().isEmpty()) {
@@ -101,7 +114,7 @@ public class PlayerListener implements Listener {
 
 	@EventHandler
 	public void onJoin(final PlayerJoinEvent event) {
-		Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+		Bukkit.getScheduler().runTaskLater(ProtocolSupport.getInstance(), new Runnable() {
 			@Override
 			public void run() {
 				BaseComponent header = TabAPI.getDefaultHeader();
